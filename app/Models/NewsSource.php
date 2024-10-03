@@ -11,11 +11,14 @@ class NewsSource extends Model
     use HasFactory, BelongsToManyUsers;
 
     protected $fillable = [
+    'id',
+    'unique_id',
     'source',
     'category',
     'author',
     'keyword',
     'article',
+    'publish_date',
     ];
 
     protected $casts = [
