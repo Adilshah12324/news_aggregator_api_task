@@ -21,3 +21,18 @@ Route::prefix('/articles')->group(function () {
             Route::get('/show/{id}','show');
     });
 });
+
+
+// User Routes
+
+Route::middleware('auth:sanctum')->prefix('/user')->group(function () {
+    
+    /**
+     * News articles Routes
+     */
+    Route::controller(App\Http\Controllers\User\NewsArticleController::class)
+    ->prefix('/news-article')->group(function(){
+            Route::get('/','index');
+            Route::post('/set','setNewsArticles');
+    });
+});
