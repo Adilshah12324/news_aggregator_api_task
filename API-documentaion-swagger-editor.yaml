@@ -1,0 +1,374 @@
+openapi: 3.0.0
+info:
+  title: News Aggregator API
+  description: API for managing user authentication and accessing news articles.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost/api
+    description: Development server
+
+paths:
+  /login:
+    post:
+      tags:
+        - Authentication APIs
+      summary: User login
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      email:
+                        type: string
+        '401':
+          description: Invalid credentials
+        '500':
+          description: Internal server error
+
+  /register:
+    post:
+      tags:
+        - Authentication APIs
+      summary: User signup
+      operationId: signup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                age:
+                  type: integer
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                password_confirmation:
+                  type: string
+              required:
+                - name
+                - age
+                - email
+                - password
+                - password_confirmation
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      email:
+                        type: string
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+
+  /password/email:
+    post:
+      tags:
+        - Authentication APIs
+      summary: Forgot Password
+      operationId: forgotPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+              required:
+                - email
+      responses:
+        '200':
+          description: Password reset link sent
+        '404':
+          description: URL not found
+        '500':
+          description: Internal server error
+          
+  /password/reset:
+    post:
+      tags:
+        - Authentication APIs
+      summary: Reset password
+      operationId: resetPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                password_confirmation:
+                  type: string
+              required:
+                - token
+                - email
+                - password
+                - password_confirmation
+      responses:
+        '200':
+          description: Password reset Successfully
+        '404':
+          description: URL not found
+        '500':
+          description: Internal server error
+
+  /logout:
+    post:
+      tags:
+        - Authentication APIs
+      summary: User logout
+      operationId: logout
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful logout
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+
+  /articles/news-source/store:
+    post:
+      tags:
+        - Articles APIs
+      summary: Store Articles from News Sources passing (News Api, The Guardian Api, New York Times Api)
+      operationId: storeNewsSources
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                news_source:
+                  type: string
+                  enum:
+                    - News Api
+                    - The Guardian Api
+                    - New York Times Api
+              required:
+                - news_source
+      responses:
+        '200':
+          description: Store Articles Successfully
+        '404':
+          description: URL not found
+        '500':
+          description: Internal server error
+
+  /articles/news-source:
+    get:
+      tags:
+        - Articles APIs
+      summary: List Articles from News Sources & also filter articles using below parameters.
+      operationId: listNewsSources
+      parameters:
+        - name: source
+          in: query
+          description: The source from which to list articles.
+          schema:
+            type: string
+        - name: category
+          in: query
+          description: The category from which to list articles.
+          schema:
+            type: string
+        - name: keyword
+          in: query
+          description: The keyword from which to list articles.
+          schema:
+            type: string
+        - name: date
+          in: query
+          description: The publish date from which to list articles.(yyyy-mm-dd)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Articles retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    title:
+                      type: string
+                    content:
+                      type: string
+        '404':
+          description: URL Not Found
+        '500':
+          description: Internal server error
+
+  /articles/news-source/show/{id}:
+    get:
+      tags:
+        - Articles APIs
+      summary: Retrieve a specific article from a news source
+      operationId: showNewsSourceArticle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the article to retrieve.
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Show Article successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  title:
+                    type: string
+                  content:
+                    type: string
+                  source:
+                    type: string
+        '404':
+          description: URL not found
+        '500':
+          description: Internal server error
+         
+  /user/news-article/set:
+    post:
+      tags:
+        - User APIs related to Articles
+      summary: Set articles by set_through(category,source,author) & favorite value
+      operationId: setNewsArticles
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                set_through:
+                  type: string
+                  enum:
+                    - category
+                    - source
+                    - author
+                favorite:
+                  type: string
+              required:
+                - set_through
+                - favorite
+      responses:
+        '200':
+          description: Articles set successfully
+        '404':
+          description: URL not found
+        '500':
+          description: Internal server error
+
+  /user/news-article:
+    get:
+      tags:
+        - User APIs related to Articles
+      summary: List Articles related to login user
+      operationId: listArticlesRelatedToUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: get_through
+          in: query
+          description: Get list of articles through (source, category, author).
+          schema:
+            type: string
+        - name: my_favorite
+          in: query
+          description: Enter value related to above get_through value.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Articles retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    title:
+                      type: string
+                    content:
+                      type: string
+        '404':
+          description: URL not found
+        '500':
+          description: Internal server error
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
